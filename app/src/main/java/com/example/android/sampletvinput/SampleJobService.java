@@ -68,72 +68,13 @@ public class SampleJobService extends EpgSyncWithAdsJobService {
     public List<Channel> getChannels() {
         // Add channels through an XMLTV file
         XmlTvParser.TvListing listings = RichFeedUtil.getRichTvListings(this);
-        List<Channel> channelList = new ArrayList<>(listings.getChannels());
-
-        // Build advertisement list for the channel.
-        Advertisement channelAd = new Advertisement.Builder()
-                .setType(Advertisement.TYPE_VAST)
-                .setRequestUrl(TEST_AD_REQUEST_URL)
-                .build();
-        List<Advertisement> channelAdList = new ArrayList<>();
-        channelAdList.add(channelAd);
-
-        // Add a channel programmatically
-        InternalProviderData internalProviderData = new InternalProviderData();
-        internalProviderData.setRepeatable(true);
-        internalProviderData.setAds(channelAdList);
-        Channel channelTears = new Channel.Builder()
-                .setDisplayName(MPEG_DASH_CHANNEL_NAME)
-                .setDisplayNumber(MPEG_DASH_CHANNEL_NUMBER)
-                .setChannelLogo(MPEG_DASH_CHANNEL_LOGO)
-                .setOriginalNetworkId(MPEG_DASH_ORIGINAL_NETWORK_ID)
-                .setInternalProviderData(internalProviderData)
-                .build();
-        channelList.add(channelTears);
-        return channelList;
+        return  listings.getChannels();
     }
 
     @Override
     public List<Program> getOriginalProgramsForChannel(Uri channelUri, Channel channel,
             long startMs, long endMs) {
-        if (!channel.getDisplayName().equals(MPEG_DASH_CHANNEL_NAME)) {
-            // Is an XMLTV Channel
-            XmlTvParser.TvListing listings = RichFeedUtil.getRichTvListings(getApplicationContext());
-            return listings.getPrograms(channel);
-        } else {
-            // Build Advertisement list for the program.
-            Advertisement programAd1 = new Advertisement.Builder()
-                    .setStartTimeUtcMillis(TEST_AD_1_START_TIME_MS)
-                    .setStopTimeUtcMillis(TEST_AD_1_START_TIME_MS + TEST_AD_DURATION_MS)
-                    .setType(Advertisement.TYPE_VAST)
-                    .setRequestUrl(TEST_AD_REQUEST_URL)
-                    .build();
-            Advertisement programAd2 = new Advertisement.Builder(programAd1)
-                    .setStartTimeUtcMillis(TEST_AD_2_START_TIME_MS)
-                    .setStopTimeUtcMillis(TEST_AD_2_START_TIME_MS + TEST_AD_DURATION_MS)
-                    .build();
-            List<Advertisement> programAdList = new ArrayList<>();
-            programAdList.add(programAd1);
-            programAdList.add(programAd2);
-
-            // Programatically add channel
-            List<Program> programsTears = new ArrayList<>();
-            InternalProviderData internalProviderData = new InternalProviderData();
-            internalProviderData.setVideoType(Util.TYPE_DASH);
-            internalProviderData.setVideoUrl(TEARS_OF_STEEL_SOURCE);
-            internalProviderData.setAds(programAdList);
-            programsTears.add(new Program.Builder()
-                    .setTitle(TEARS_OF_STEEL_TITLE)
-                    .setStartTimeUtcMillis(TEARS_OF_STEEL_START_TIME_MS)
-                    .setEndTimeUtcMillis(TEARS_OF_STEEL_START_TIME_MS + TEARS_OF_STEEL_DURATION_MS)
-                    .setDescription(TEARS_OF_STEEL_DESCRIPTION)
-                    .setCanonicalGenres(new String[] {TvContract.Programs.Genres.TECH_SCIENCE,
-                            TvContract.Programs.Genres.MOVIES})
-                    .setPosterArtUri(TEARS_OF_STEEL_ART)
-                    .setThumbnailUri(TEARS_OF_STEEL_ART)
-                    .setInternalProviderData(internalProviderData)
-                    .build());
-            return programsTears;
-        }
+        XmlTvParser.TvListing listings = RichFeedUtil.getRichTvListings(getApplicationContext());
+        return listings.getPrograms(channel);
     }
 }
