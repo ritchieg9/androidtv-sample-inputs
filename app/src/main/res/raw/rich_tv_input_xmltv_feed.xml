@@ -12,7 +12,7 @@ contents. For details, please see the documentation of XmlTvParser class.
     <programme
         channel="com.example.android.sampletvinput.2-1"
         start="20150817000000 +0000"
-        stop="20150817000147 +0000"
+        stop="20150817005000 +0000"
         video-src="http://aztkhlslive-i.akamaihd.net/hls/live/572724/az7/master.m3u8"
         video-type="HLS">
         <title>Introducing Gmail Blue</title>

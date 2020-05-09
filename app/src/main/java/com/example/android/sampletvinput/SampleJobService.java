@@ -15,54 +15,23 @@
  */
 package com.example.android.sampletvinput;
 
-import android.media.tv.TvContract;
 import android.net.Uri;
+import android.support.annotation.VisibleForTesting;
+
 import com.example.android.sampletvinput.rich.RichFeedUtil;
-import com.google.android.exoplayer.util.Util;
-import com.google.android.media.tv.companionlibrary.ads.EpgSyncWithAdsJobService;
-import com.google.android.media.tv.companionlibrary.model.Advertisement;
 import com.google.android.media.tv.companionlibrary.model.Channel;
 import com.google.android.media.tv.companionlibrary.model.InternalProviderData;
 import com.google.android.media.tv.companionlibrary.model.Program;
+import com.google.android.media.tv.companionlibrary.sync.EpgSyncJobService;
 import com.google.android.media.tv.companionlibrary.xmltv.XmlTvParser;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * EpgSyncJobService that periodically runs to update channels and programs.
  */
-public class SampleJobService extends EpgSyncWithAdsJobService {
-    private String MPEG_DASH_CHANNEL_NAME = "MPEG_DASH";
-    private String MPEG_DASH_CHANNEL_NUMBER = "3";
-    private String MPEG_DASH_CHANNEL_LOGO
-            = "https://storage.googleapis.com/android-tv/images/mpeg_dash.png";
-    private int MPEG_DASH_ORIGINAL_NETWORK_ID = 101;
-    private String TEARS_OF_STEEL_TITLE = "Tears of Steel";
-    private String TEARS_OF_STEEL_DESCRIPTION = "Monsters invade a small town in this sci-fi flick";
-    private String TEARS_OF_STEEL_ART
-            = "https://storage.googleapis.com/gtv-videos-bucket/sample/images/tears.jpg";
-    private String TEARS_OF_STEEL_SOURCE
-            = "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears.mpd";
-    private static final long TEARS_OF_STEEL_START_TIME_MS = 0;
-    private static final long TEARS_OF_STEEL_DURATION_MS = 734 * 1000;
-    private static final long TEST_AD_1_START_TIME_MS = 15 * 1000;
-    private static final long TEST_AD_2_START_TIME_MS = 40 * 1000;
-    private static final long TEST_AD_DURATION_MS = 10 * 1000;
-    /**
-     * Test <a href="http://www.iab.com/guidelines/digital-video-ad-serving-template-vast-3-0/">
-     * VAST</a> URL from <a href="https://www.google.com/dfp">DoubleClick for Publishers (DFP)</a>.
-     * More sample VAST tags can be found on
-     * <a href="https://developers.google.com/interactive-media-ads/docs/sdks/android/tags">DFP
-     * website</a>. You should replace it with the vast tag that you applied from your
-     * advertisement provider. To verify whether your video ad response is VAST compliant, try<a
-     * href="https://developers.google.com/interactive-media-ads/docs/sdks/android/vastinspector">
-     * Google Ads Mobile Video Suite Inspector</a>
-     */
-    private static String TEST_AD_REQUEST_URL =
-            "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/" +
-            "single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast" +
-            "&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct" +
-            "%3Dlinear&correlator=";
+public class SampleJobService extends EpgSyncJobService {
 
     @Override
     public List<Channel> getChannels() {
@@ -71,10 +40,90 @@ public class SampleJobService extends EpgSyncWithAdsJobService {
         return  listings.getChannels();
     }
 
-    @Override
-    public List<Program> getOriginalProgramsForChannel(Uri channelUri, Channel channel,
-            long startMs, long endMs) {
-        XmlTvParser.TvListing listings = RichFeedUtil.getRichTvListings(getApplicationContext());
-        return listings.getPrograms(channel);
+    /**
+     * Repeats and ads ads to programs as needed.
+     *
+     * @param channel The {@link Channel} for the programs to return.
+     * @param programs The original fetched from cloud.
+     * @param startTimeMs The start time of the range requested.
+     * @param endTimeMs The end time of the range requested.
+     * @return A list of programs for the channel within the specifed range. They may be repeated.
+     * @hide
+     */
+    @VisibleForTesting
+    public static List<Program> repeatAndInsertAds(
+            Channel channel, List<Program> programs, long startTimeMs, long endTimeMs) {
+        if (startTimeMs > endTimeMs) {
+            throw new IllegalArgumentException("Start time must be before end time");
+        }
+        if (programs.isEmpty()) {
+            return programs;
+        }
+        List<Program> programForGivenTime = new ArrayList<>();
+        if (channel.getInternalProviderData() != null
+                && !channel.getInternalProviderData().isRepeatable()) {
+            for (Program program : programs) {
+                if (program.getStartTimeUtcMillis() <= endTimeMs
+                        && program.getEndTimeUtcMillis() >= startTimeMs) {
+                    programForGivenTime.add(
+                            new Program.Builder(program).setChannelId(channel.getId()).build());
+                }
+            }
+            return programForGivenTime;
+        }
+
+        // If repeat-programs is on, schedule the programs sequentially in a loop. To make every
+        // device play the same program in a given channel and time, we assumes the loop started
+        // from the epoch time.
+        long totalDurationMs = 0;
+        for (Program program : programs) {
+            totalDurationMs += (program.getEndTimeUtcMillis() - program.getStartTimeUtcMillis());
+        }
+        if (totalDurationMs <= 0) {
+            throw new IllegalArgumentException(
+                    "The duration of all programs must be greater " + "than 0ms.");
+        }
+
+        long programStartTimeMs = startTimeMs - startTimeMs % totalDurationMs;
+        int i = 0;
+        final int programCount = programs.size();
+        while (programStartTimeMs < endTimeMs) {
+            Program programInfo = programs.get(i++ % programCount);
+            long programEndTimeMs = programStartTimeMs + totalDurationMs;
+            if (programInfo.getEndTimeUtcMillis() > -1
+                    && programInfo.getStartTimeUtcMillis() > -1) {
+                programEndTimeMs =
+                        programStartTimeMs
+                                + (programInfo.getEndTimeUtcMillis()
+                                - programInfo.getStartTimeUtcMillis());
+            }
+            if (programEndTimeMs < startTimeMs) {
+                programStartTimeMs = programEndTimeMs;
+                continue;
+            }
+
+            InternalProviderData updateInternalProviderData = programInfo.getInternalProviderData();
+            programForGivenTime.add(
+                    new Program.Builder(programInfo)
+                            .setChannelId(channel.getId())
+                            .setStartTimeUtcMillis(programStartTimeMs)
+                            .setEndTimeUtcMillis(programEndTimeMs)
+                            .setInternalProviderData(updateInternalProviderData)
+                            .build());
+            programStartTimeMs = programEndTimeMs;
+        }
+        return programForGivenTime;
     }
+
+    @Override
+    public List<Program> getProgramsForChannel(Uri channelUri, Channel channel, long startMs, long endMs) throws EpgSyncException {
+        XmlTvParser.TvListing listings = RichFeedUtil.getRichTvListings(getApplicationContext());
+
+        return repeatAndInsertAds(
+                channel,
+                listings.getPrograms(channel),
+                startMs,
+                endMs);
+    }
+
 }
