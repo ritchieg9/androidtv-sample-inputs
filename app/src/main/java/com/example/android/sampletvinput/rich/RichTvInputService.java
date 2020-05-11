@@ -195,14 +195,14 @@ public class RichTvInputService extends BaseTvInputService {
         }
 
         @Override
-        public boolean onPlayProgram(Program program, long startPosMs) {
+        public boolean onPlayProgram(Program program, Channel channel, long startPosMs) {
             if (program == null) {
                 requestEpgSync(getCurrentChannelUri());
                 notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
                 return false;
             }
-            createPlayer(program.getInternalProviderData().getVideoType(),
-                    Uri.parse(program.getInternalProviderData().getVideoUrl()));
+            createPlayer(channel.getInternalProviderData().getVideoType(),
+                    Uri.parse(channel.getInternalProviderData().getVideoUrl()));
             if (startPosMs > 0) {
                 mPlayer.seekTo(startPosMs);
             }

@@ -559,7 +559,7 @@ public abstract class BaseTvInputService extends TvInputService {
                 return;
             }
 
-            if (playCurrentProgram()) {
+            if (onPlayChannel(mCurrentChannel)) {
                 setTvPlayerSurface(mSurface);
                 setTvPlayerVolume(mVolume);
                 if (mCurrentProgram != null) {
@@ -567,6 +567,16 @@ public abstract class BaseTvInputService extends TvInputService {
                     scheduleNextProgram();
                 }
             }
+
+            //todo change to playCurrentChannel
+//            if (playCurrentProgram()) {
+//                setTvPlayerSurface(mSurface);
+//                setTvPlayerVolume(mVolume);
+//                if (mCurrentProgram != null) {
+//                    // Prepare to play the upcoming program.
+//                    scheduleNextProgram();
+//                }
+//            }
         }
 
         private void calculateElapsedTimesFromCurrentTime() {
@@ -601,13 +611,13 @@ public abstract class BaseTvInputService extends TvInputService {
                                 + mChannelUri
                                 + ". Try to do an "
                                 + "EPG sync.");
-                return onPlayProgram(null, 0);
+                return onPlayProgram(null, mCurrentChannel, 0);
             }
             calculateElapsedTimesFromCurrentTime();
             if (!scheduleNextAd()) {
                 return false;
             }
-            return onPlayProgram(mCurrentProgram, mElapsedProgramTime);
+            return onPlayProgram(mCurrentProgram, mCurrentChannel, mElapsedProgramTime);
         }
 
         private boolean scheduleNextAd() {
@@ -730,10 +740,11 @@ public abstract class BaseTvInputService extends TvInputService {
          * manually resyncing the EPG.
          *
          * @param program The program that is set to be playing for a the currently tuned channel.
+         * @param mCurrentChannel
          * @param startPosMs Start position of content video.
          * @return Whether playing this program was successful.
          */
-        public abstract boolean onPlayProgram(Program program, long startPosMs);
+        public abstract boolean onPlayProgram(Program program, Channel mCurrentChannel, long startPosMs);
 
         /**
          * This method is called when a particular recorded program is to begin playing. If the
@@ -751,9 +762,11 @@ public abstract class BaseTvInputService extends TvInputService {
          * or channel ad begins playing.
          *
          * @param channel The channel that the user wants to watch.
+         * @return
          */
-        public void onPlayChannel(Channel channel) {
+        public boolean onPlayChannel(Channel channel) {
             // Do nothing.
+            return onPlayProgram(mCurrentProgram, mCurrentChannel, mElapsedProgramTime);
         }
 
         /**

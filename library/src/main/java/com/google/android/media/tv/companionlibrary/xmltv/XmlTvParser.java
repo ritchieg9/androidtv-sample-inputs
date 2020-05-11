@@ -204,6 +204,8 @@ public class XmlTvParser {
             throws IOException, XmlPullParserException, ParseException {
         String id = null;
         boolean repeatPrograms = false;
+        String videoSrc = null;
+        int videoType = TvContractUtils.SOURCE_TYPE_HTTP_PROGRESSIVE;
         for (int i = 0; i < parser.getAttributeCount(); ++i) {
             String attr = parser.getAttributeName(i);
             String value = parser.getAttributeValue(i);
@@ -211,6 +213,16 @@ public class XmlTvParser {
                 id = value;
             } else if (ATTR_REPEAT_PROGRAMS.equalsIgnoreCase(attr)) {
                 repeatPrograms = "TRUE".equalsIgnoreCase(value);
+            } else if (ATTR_VIDEO_SRC.equalsIgnoreCase(attr)) {
+                videoSrc = value;
+            } else if (ATTR_VIDEO_TYPE.equalsIgnoreCase(attr)) {
+                if (VALUE_VIDEO_TYPE_HTTP_PROGRESSIVE.equals(value)) {
+                    videoType = TvContractUtils.SOURCE_TYPE_HTTP_PROGRESSIVE;
+                } else if (VALUE_VIDEO_TYPE_HLS.equals(value)) {
+                    videoType = TvContractUtils.SOURCE_TYPE_HLS;
+                } else if (VALUE_VIDEO_TYPE_MPEG_DASH.equals(value)) {
+                    videoType = TvContractUtils.SOURCE_TYPE_MPEG_DASH;
+                }
             }
         }
         String displayName = null;
@@ -244,6 +256,9 @@ public class XmlTvParser {
         // Developers should assign original network ID in the right way not using the fake ID.
         InternalProviderData internalProviderData = new InternalProviderData();
         internalProviderData.setRepeatable(repeatPrograms);
+        internalProviderData.setVideoType(videoType);
+        internalProviderData.setVideoUrl(videoSrc);
+
         Channel.Builder builder =
                 new Channel.Builder()
                         .setDisplayName(displayName)

@@ -116,7 +116,7 @@ public class TestTvInputService extends BaseTvInputService {
         }
 
         @Override
-        public boolean onPlayProgram(Program program, long startMs) {
+        public boolean onPlayProgram(Program program, Channel mCurrentChannel, long startMs) {
             if (program == null) {
                 return false;
             } else {
