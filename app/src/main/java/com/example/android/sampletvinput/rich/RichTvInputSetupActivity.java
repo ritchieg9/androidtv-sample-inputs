@@ -18,9 +18,10 @@ package com.example.android.sampletvinput.rich;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v17.leanback.app.GuidedStepFragment;
 
-/** The setup activity for demonstrating {@link RichTvInputService}. */
+import androidx.leanback.app.GuidedStepFragment;
+
+
 public class RichTvInputSetupActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {

@@ -27,14 +27,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.CaptioningManager;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
 import com.example.android.sampletvinput.R;
 import com.example.android.sampletvinput.SampleJobService;
 import com.example.android.sampletvinput.player.DemoPlayer;
@@ -53,6 +55,7 @@ import com.google.android.media.tv.companionlibrary.model.Program;
 import com.google.android.media.tv.companionlibrary.model.RecordedProgram;
 import com.google.android.media.tv.companionlibrary.sync.EpgSyncJobService;
 import com.google.android.media.tv.companionlibrary.utils.TvContractUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -194,25 +197,6 @@ public class RichTvInputService extends BaseTvInputService {
             return tracks;
         }
 
-        @Override
-        public boolean onPlayProgram(Program program, Channel channel, long startPosMs) {
-            if (program == null) {
-                requestEpgSync(getCurrentChannelUri());
-                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
-                return false;
-            }
-            createPlayer(channel.getInternalProviderData().getVideoType(),
-                    Uri.parse(channel.getInternalProviderData().getVideoUrl()));
-            if (startPosMs > 0) {
-                mPlayer.seekTo(startPosMs);
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                notifyTimeShiftStatusChanged(TvInputManager.TIME_SHIFT_STATUS_AVAILABLE);
-            }
-            mPlayer.setPlayWhenReady(true);
-            return true;
-        }
-
         @RequiresApi(api = Build.VERSION_CODES.N)
         public boolean onPlayRecordedProgram(RecordedProgram recordedProgram) {
             createPlayer(recordedProgram.getInternalProviderData().getVideoType(),
@@ -230,6 +214,25 @@ public class RichTvInputService extends BaseTvInputService {
 
         public TvPlayer getTvPlayer() {
             return mPlayer;
+        }
+
+        @Override
+        public boolean onPlayProgram(Program program, long startPosMs) {
+            if (program == null) {
+                requestEpgSync(getCurrentChannelUri());
+                notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
+                return false;
+            }
+            createPlayer(program.getInternalProviderData().getVideoType(),
+                    Uri.parse(program.getInternalProviderData().getVideoUrl()));
+            if (startPosMs > 0) {
+                mPlayer.seekTo(startPosMs);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                notifyTimeShiftStatusChanged(TvInputManager.TIME_SHIFT_STATUS_AVAILABLE);
+            }
+            mPlayer.setPlayWhenReady(true);
+            return true;
         }
 
         @Override

@@ -18,6 +18,7 @@ package com.example.android.sampletvinput.player;
 
 import android.content.Context;
 import android.net.Uri;
+
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.util.Util;
 import com.google.android.media.tv.companionlibrary.utils.TvContractUtils;
@@ -37,7 +38,7 @@ public class RendererBuilderFactory {
      */
     public static DemoPlayer.RendererBuilder createRendererBuilder(
             Context context, int contentType, Uri contentUri) {
-        String userAgent = Util.getUserAgent(context, "ExoVideoPlayer");
+        String userAgent = Util.getUserAgent(context, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36");
 
         switch (contentType) {
             case TvContractUtils.SOURCE_TYPE_MPEG_DASH: {

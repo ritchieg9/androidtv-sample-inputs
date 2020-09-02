@@ -1,21 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2015 The Android Open Source Project
 
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
 
 <manifest
     package="com.example.android.sampletvinput"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-sdk android:targetSdkVersion="25"/>
@@ -36,21 +24,22 @@
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
+
     <uses-feature
         android:name="android.software.leanback"
         android:required="true" />
 
-    <!-- Required to expose this app in the store only when the device has TV input framework
-    with the TV app. -->
     <uses-feature
         android:name="android.software.live_tv"
         android:required="true" />
 
     <application
+        android:usesCleartextTraffic="true"
         android:allowBackup="false"
         android:icon="@drawable/android_48dp"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Leanback">
+        android:theme="@style/Theme.Leanback"
+        android:banner="@drawable/ic_baner">
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -122,7 +111,9 @@
 
         <!-- Required by IMA SDK to fetch the version number of Google Play Service -->
         <meta-data
+            tools:replace="android:value"
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
     </application>
 </manifest>

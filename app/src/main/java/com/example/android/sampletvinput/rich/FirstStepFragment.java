@@ -18,11 +18,16 @@ package com.example.android.sampletvinput.rich;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v17.leanback.app.GuidedStepFragment;
-import android.support.v17.leanback.widget.GuidanceStylist.Guidance;
-import android.support.v17.leanback.widget.GuidedAction;
+
+
+import androidx.annotation.NonNull;
+import androidx.leanback.app.GuidedStepFragment;
+import androidx.leanback.widget.GuidanceStylist;
+import androidx.leanback.widget.GuidedAction;
+
 import com.example.android.sampletvinput.R;
+import com.example.android.sampletvinput.rich.RichSetupFragment;
+
 import java.util.List;
 
 /** Introduction step in the input setup flow. */
@@ -30,12 +35,12 @@ public class FirstStepFragment extends GuidedStepFragment {
 
     @Override
     @NonNull
-    public Guidance onCreateGuidance(@NonNull Bundle savedInstanceState) {
+    public GuidanceStylist.Guidance onCreateGuidance(@NonNull Bundle savedInstanceState) {
         String title = getString(R.string.rich_input_label);
 
         String description = getString(R.string.rich_setup_first_step_description);
         Drawable icon = getActivity().getDrawable(R.drawable.android_48dp);
-        return new Guidance(title, description, null, icon);
+        return new GuidanceStylist.Guidance(title, description, null, icon);
     }
 
     @Override

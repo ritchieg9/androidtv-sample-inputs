@@ -18,16 +18,20 @@ package com.example.android.sampletvinput.rich;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v17.leanback.widget.VerticalGridView;
-import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
+
+import androidx.leanback.widget.VerticalGridView;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.android.sampletvinput.R;
+import com.example.android.sampletvinput.rich.RichFeedUtil;
 import com.google.android.media.tv.companionlibrary.model.Channel;
 import com.google.android.media.tv.companionlibrary.model.ModelUtils;
+
 import java.util.List;
 
 /**

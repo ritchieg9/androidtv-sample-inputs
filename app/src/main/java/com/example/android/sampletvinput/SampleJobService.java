@@ -16,7 +16,8 @@
 package com.example.android.sampletvinput;
 
 import android.net.Uri;
-import android.support.annotation.VisibleForTesting;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.example.android.sampletvinput.rich.RichFeedUtil;
 import com.google.android.media.tv.companionlibrary.model.Channel;
